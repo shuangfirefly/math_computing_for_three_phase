@@ -1,0 +1,226 @@
+#-*- coding: cp936 -*-
+
+#实现功能：计算不对称三相电的相关数据
+#注意：仅针对不对称三相电源！！！角接电流表测的是相电流！！！
+
+
+#导入相关模块
+import os, math, codecs, time
+
+os.system('title MATH COMPUTING V1.0 @ POWERED BY FIREFLY')
+
+#获取软件工作位置并将其设置为数据保存的位置
+software_path = os.getcwd()
+print ' '*10, '系统将会把你的数据保存到该与软件相同的目录下', '就是这里','\n', ' '*10, os.getcwd(), '\n'*3
+
+
+# 数据准备
+PI = math.pi  # π 的赋值  
+f = 50  #频率
+oumi = 2 * PI * f
+MK = 3        #确认用
+
+
+#定义函数
+
+#定义 写入数据 函数
+def write_data(word, data):
+    os.chdir( software_path )
+    data = str( data )   #可能多余
+    with codecs.open( 'DATA_ANALYSE.txt', 'a' ) as fhand:
+        fhand.write( '\n' )
+        fhand.write( word,)
+        fhand.write( data )
+        
+        
+#定义 接收源数据 函数
+def get_data( phase ):
+    print '        WARNING!  你正在输入的是 -->  ', phase, '  相的数据'
+    phase_U = float(input('        请输入 该项 相 的 电压        -->  '))
+
+    write_data('        WARNING!  你正在输入的相是： -->  ', phase)
+    write_data('        请输入   该项 的 电压        -->  ', phase_U)
+    
+    phase_I = float(input('        请输入  该项 的 电流        -->  '))
+    write_data('        请输入   该项 的 电流        -->  ', phase_I)
+    
+    phase_P = float(input('        请输入  该项 的 功率        -->  '))
+    write_data('        请输入  该项 的 功率        -->  ', phase_P)
+    
+    phase_COS = float(input('       请输入  该项 的 COS 角值    -->  '))
+    write_data('       请输入   该项 的 COS 角值    -->  ', phase_COS)
+    return phase_U, phase_I, phase_P, phase_COS
+
+#定义 各公式 的函数
+
+#定义L, C, B, Xl, Xc, Bl, Bc 的计算
+def Others_computing(judge, X_get):
+    if MK == 0:
+        Xl = 0
+        Xc = 0
+        Bl = 0
+        Bc = 0
+        L = 0
+        C = 0
+        B = 0
+
+        write_data('\n', None)
+        write_data('    Xl 值  -->  ', Xl)
+        write_data('    Xc 值  -->  ', Xc)
+        write_data('    L 值  -->  ', L)
+        write_data('    C 值  -->  ', C)
+        write_data('    Bl 值  -->  ', Bl)
+        write_data('    Bc 值  -->  ', Bc)
+        write_data('    B 值  -->  ', B)
+        write_data('\n', None)
+        write_data( '*' * 50, None)
+        
+    if MK == 1:
+        Xl = X_get
+        Xc = 0
+        L = Xl / (2 * PI * f)
+        C = 0
+        Bl = -1 / (oumi * L)
+        Bc = 0
+        B = Bl + Bc
+
+        write_data('\n', None)
+        write_data('    Xl 值  -->  ', Xl)
+        write_data('    Xc 值  -->  ', Xc)
+        write_data('    L 值  -->  ', L)
+        write_data('    C 值  -->  ', C)
+        write_data('    Bl 值  -->  ', Bl)
+        write_data('    Bc 值  -->  ', Bc)
+        write_data('    B 值  -->  ', B)
+        write_data('\n', None)
+        write_data( '*' * 50, None)
+        
+    if MK == 2:
+        Xl = 0
+        Xc = -X_get
+        L = 0
+        C = 1 / (oumi * Xc)
+        Bl = 0
+        Bc = oumi * C
+        B = Bl + Bc
+
+        write_data('\n', None)
+        write_data('    Xl 值  -->  ', Xl)
+        write_data('    Xc 值  -->  ', Xc)
+        write_data('    L 值  -->  ', L)
+        write_data('    C 值  -->  ', C)
+        write_data('    Bl 值  -->  ', Bl)
+        write_data('    Bc 值  -->  ', Bc)
+        write_data('    B 值  -->  ', B)
+        write_data('\n', None)
+        write_data( '*' * 50, None)
+        
+#定义 阻抗三角形 函数
+def Resistance(phase, phase_single_U, phase_single_I, phase_single_COS, MK):
+    Z = phase_single_U / phase_single_I
+    R = Z * phase_single_COS
+    X = Z * math.sqrt( 1 - math.pow(phase_single_COS, 2))
+    tem = math.atan(X / R)
+    FAT = (tem * 180) / PI
+    Xl = X
+
+    write_data('     \n**相位**  -->  ',phase)    
+    write_data('    Z 值  -->  ', Z)
+    write_data('    R 值  -->  ', R)
+    write_data('    X 值  -->  ', X)
+    write_data('    相位角 值  -->  ', FAT)
+    Others_computing(MK, X)    
+
+#定义 电流三角形 函数
+def Current(phase, phase_single_I, phase_single_COS ):
+    Ir = phase_single_I * phase_single_COS
+    Ix = phase_single_I * math.sqrt( 1 - math.pow(phase_single_COS, 2))
+
+    write_data('     \n**相位**  -->  ', phase)
+    write_data('    **I** 值  -->  ', phase_single_I)
+    write_data('    Ir 值  -->  ', Ir)
+    write_data('    Ix 值  -->  ', Ix)
+    
+#定义 电压三角形 函数
+def Voltage(phase, phase_single_U, phase_single_COS ):
+    Ur = phase_single_U * phase_single_COS
+    Ux = phase_single_U * math.sqrt( 1 - math.pow(phase_single_COS, 2))
+
+    write_data('     \n**相位**  -->  ', phase)
+    write_data('    **U** 值  -->  ', phase_single_U)
+    write_data('      Ur 值  -->  ', Ur)
+    write_data('      Ux 值  -->  ', Ux)
+
+#定义 功率三角形 函数
+def Power(phase, phase_single_U, phase_single_I, phase_single_COS ):
+    S = phase_single_U * phase_single_I
+    P = S * phase_single_COS
+    Q = S * math.sqrt( 1 - math.pow(phase_single_COS, 2))
+
+    write_data('     \n**相位**  -->  ', phase)
+    write_data('    S 值  -->  ', S)
+    write_data('    P 值  -->  ', P)
+    write_data('    Q 值  -->  ', Q)
+    
+    
+
+    
+    
+    
+    
+
+
+#接受 U, V, W 相 的数据
+print ' '*10, '*'*50, '\n'*1, ' '*10, '请注意，数据一经输入，无法更改, 除非退出本软件，并重新启动\n', ' '*10, '*'*50, '\n'*4 
+
+U_U, U_I, U_P, U_COS = get_data('U')
+
+print '\n'*2
+
+V_U, V_I, V_P, V_COS = get_data('V')
+
+print '\n'*2
+
+W_U, W_I, W_P, W_COS = get_data('W')
+
+print '\n'*2
+
+MK = input('\n        阻性，请按数字 0 , 感性，请按数字 1  ,容性，请按数字 2  \n      请输入   -->  ') 
+
+print '\n'*2
+print ' '*10, '系统正在计算数据，并存储到 ', os.getcwd(), '位置下'
+
+
+
+
+#U 相 阻抗，电流，电压，功率    的计算
+Resistance('U', U_U, U_I, U_COS, MK)
+Current('U', U_I, U_COS )
+Voltage('U', U_U, U_COS )
+Power('U', U_U, U_I, U_COS )
+
+#V 相 阻抗，电流，电压，功率    的计算
+Resistance('V', V_U, V_I, V_COS, MK)
+Voltage('V', V_U, V_COS )
+Current('V', V_I, V_COS )
+Power('V', V_U, V_I, V_COS )
+
+
+#W 相 阻抗，电流，电压，功率    的计算
+Resistance('W', W_U, W_I, W_COS, MK)
+Current('W', W_I, W_COS )
+Voltage('W', W_U, W_COS )
+Power('W', W_U, W_I, W_COS )
+
+
+print ' '*10, '*'*50
+print ' '*15, '已经完成计算，请验证'
+print ' '*10, '*'*50
+
+time.sleep(2)
+os.system('start DATA_ANALYSE.txt')
+
+print ' '*10, 
+raw_input('请按任意键退出')
+raw_input('请按任意键退出')
+
